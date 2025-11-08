@@ -1,0 +1,23 @@
+# Ignorar pastas do Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Ignorar binários compilados
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Ignorar arquivos gerados automaticamente
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+*.tmp
+*.db
+
+# Ignorar pacotes do NuGet
+*.nupkg
+packages/
+.nuget/
