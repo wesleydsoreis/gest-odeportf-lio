@@ -18,12 +18,12 @@ public class ProjetoCRUD
             tela.PrepararTela("Project Portfolio Management - Projetos");
             var ops = new List<string>
             {
-                "     Menu Projetos      ",
-                "1 - Cadastrar Projeto   ",
-                "2 - Exibir Projetos     ",
-                "3 - Dashboard de Projetos",
-                "4 - Fechamento Formal   ",
-                "0 - Voltar              "
+                "      Menu Projetos        ",
+                "1 - Cadastrar Projeto      ",
+                "2 - Exibir Projetos        ",
+                "3 - Dashboard de Projetos  ",
+                "4 - Fechamento Formal      ",
+                "0 - Voltar                 "
             };
             string op = tela.MostrarMenu(ops, 2, 2);
 
@@ -40,7 +40,6 @@ public class ProjetoCRUD
         }
     }
 
-    // ===== 1) Cadastrar Projeto =====
     private void CadastrarProjeto()
     {
         while (true)
@@ -125,7 +124,7 @@ public class ProjetoCRUD
         }
 
         Console.WriteLine();
-        int id = LInt("Digite o ID do projeto que deseja visualizar (ou 0 para voltar)");
+        int id = LInt("Digite o ID do projeto que deseja visualizar (ou ESC para voltar)");
         if (id == 0) return;
 
         var proj = projetos.Find(x => x.id == id);
