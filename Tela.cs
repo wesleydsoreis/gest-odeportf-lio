@@ -19,7 +19,7 @@ public class Tela
     private const char CID = '╝';
     public Tela()
     {
-        this.largura = 80;
+        this.largura = 87;
         this.altura = 25;
         this.colunaInicial = 0;
         this.linhaInicial = 0;
@@ -34,9 +34,9 @@ public class Tela
                       this.colunaInicial + this.largura - 1,
                       this.linhaInicial + this.altura - 1);
 
-        MontarMoldura(this.colunaInicial, this.linhaInicial,
+        /*MontarMoldura(this.colunaInicial, this.linhaInicial,
                       this.colunaInicial + this.largura - 1,
-                      this.linhaInicial + 2);
+                      this.linhaInicial + 2);*/
 
         Centralizar(this.colunaInicial, this.colunaInicial + this.largura - 1, this.linhaInicial + 1, titulo);
     }
@@ -155,12 +155,21 @@ public class Tela
 }
 public void MostrarRodapePadrao()
 {
-    int lin = this.linhaInicial + this.altura - 1;
-    ApagarArea(this.colunaInicial + 1, lin, this.colunaInicial + this.largura - 1, lin);
+    // A linha onde a mensagem será exibida é a penúltima (this.altura - 2), dentro da moldura.
+    int lin = this.linhaInicial + this.altura - 2; 
+    
+    // Define a mensagem
+    string msg = "Pressione ESC para voltar:"; 
+    
+    // CORREÇÃO: Alinha à esquerda com 2 espaços de margem interna.
+    int col = this.colunaInicial + 2; 
+    
+    // Limpa a área da linha onde a mensagem será exibida para evitar cortes.
+    // Garante que toda a largura interna da moldura seja limpa antes de escrever.
+    ApagarArea(this.colunaInicial + 1, lin, this.colunaInicial + this.largura - 2, lin);
 
-    string msg = "Pressione ESC para voltar";
-    int col = (this.largura - msg.Length) / 2 + this.colunaInicial;
-    Console.SetCursorPosition(Math.Max(this.colunaInicial + 1, col), lin);
+    // Posiciona e escreve a mensagem no canto inferior esquerdo
+    Console.SetCursorPosition(col, lin);
     Console.Write(msg);
 }
 

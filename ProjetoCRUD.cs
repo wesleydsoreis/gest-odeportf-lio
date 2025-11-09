@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class ProjetoCRUD
 {
@@ -9,6 +10,11 @@ public class ProjetoCRUD
     public ProjetoCRUD(Tela tela)
     {
         this.tela = tela;
+        // Adicionando alguns projetos de exemplo para testes
+        projetos.Add(new Projeto { id = 1001, nome = "Expansao Digital", gerente = "Alice", sponsor = "Bob", orcamentoAprovado = 150000m, prazoInicial = new DateTime(2025, 12, 31), roi = 85, risco = 20, alinhamento = 90, urgencia = 70, status = "Em Execução", progresso = 50 });
+        projetos.Add(new Projeto { id = 1002, nome = "Migracao Cloud", gerente = "Carlos", sponsor = "Daniela", orcamentoAprovado = 50000m, prazoInicial = new DateTime(2025, 10, 15), roi = 60, risco = 50, alinhamento = 70, urgencia = 60, status = "Em Análise", progresso = 0 });
+        projetos.Add(new Projeto { id = 1003, nome = "Sistema CRM", gerente = "Eduardo", sponsor = "Fernanda", orcamentoAprovado = 80000m, prazoInicial = new DateTime(2026, 03, 01), roi = 95, risco = 10, alinhamento = 95, urgencia = 90, status = "Encerrado", progresso = 100 });
+        projetos.ForEach(p => p.RecalcularScoreEAprovacao());
     }
 
     public void Executar()
@@ -42,165 +48,218 @@ public class ProjetoCRUD
 
     private void CadastrarProjeto()
     {
+        // Largura do quadro ajustada para 83 (76 + 7)
+        int x = 2, y = 1, w = 83, h = 28;
+        DesenhaQuadro(x, y, w, h, "Cadastrar Projeto");
+
+        int colRot = x + 3;
+        int colInp = x + 28;
+
+        int lin = y + 3;
+        Texto(colRot, lin++, "Nome:");
+        Texto(colRot, lin++, "ID:");
+        Texto(colRot, lin++, "Gerente de Projeto:");
+        Texto(colRot, lin++, "Sponsor:");
+        Texto(colRot, lin++, "Orçamento Aprovado($):");
+        Texto(colRot, lin++, "Prazo (dd/mm/aaaa):");
+
+        Texto(colRot, lin++, "ROI(%):");
+        Texto(colRot, lin++, "Risco:");
+        Texto(colRot, lin++, "Alinhamento Estratégico:");
+        Texto(colRot, lin++, "Urgência:");
+
+        lin++;
+        int linScore = lin; Texto(colRot, lin++, "Score:");
+        int linApr = lin; Texto(colRot, lin++, "Aprovação:");
+        int linStat = lin; Texto(colRot, lin++, "Status:");
+
+        lin++;
+        int linSalvar = lin; Texto(colRot, linSalvar, "Salvar cadastro?(S/N): ");
+
+        string nome;
         while (true)
         {
-            Console.Clear();
+            nome = LerNaPos(colInp, y + 3);
+            if (!ExisteNome(nome)) break;
 
-            int x = 2, y = 1, w = 76, h = 28;
-            DesenhaQuadro(x, y, w, h, "Cadastrar Projeto");
-
-            int colRot = x + 3;
-            int colInp = x + 28;
-
-            int lin = y + 3;
-            Texto(colRot, lin++, "Nome:");
-            Texto(colRot, lin++, "ID:");
-            Texto(colRot, lin++, "Gerente de Projeto:");
-            Texto(colRot, lin++, "Sponsor:");
-            Texto(colRot, lin++, "Orçamento Aprovado($):");
-            Texto(colRot, lin++, "Prazo (dd/mm/aaaa):");
-
-            Texto(colRot, lin++, "ROI(%):");
-            Texto(colRot, lin++, "Risco:");
-            Texto(colRot, lin++, "Alinhamento Estratégico:");
-            Texto(colRot, lin++, "Urgência:");
-
-            lin++;
-            int linScore = lin; Texto(colRot, lin++, "Score:");
-            int linApr = lin; Texto(colRot, lin++, "Aprovação:");
-            int linStat = lin; Texto(colRot, lin++, "Status:");
-
-            lin++;
-            int linSalvar = lin; Texto(colRot, linSalvar, "Salvar cadastro?(S/N): ");
-
-            string nome;
-            while (true)
-            {
-                nome = LerNaPos(colInp, y + 3);
-                if (!ExisteNome(nome)) break;
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                Texto(colInp, y + 4, "! Projeto já cadastrado. Insira outro nome !");
-                Console.ResetColor();
-                Texto(colInp, y + 3, new string(' ', 40));
-            }
-            Texto(colInp, y + 4, new string(' ', 45));
-
-            int id;
-            while (true)
-            {
-                string idStr = LerNaPos(colInp, y + 4);
-                if (int.TryParse(idStr, out id) && !ExisteId(id)) break;
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                Texto(colInp, y + 5, "! ID inválido ou já cadastrado. Insira outro ID !");
-                Console.ResetColor();
-                Texto(colInp, y + 4, new string(' ', 20));
-            }
-            Texto(colInp, y + 5, new string(' ', 50));
-
-            string gerente = LerNaPos(colInp, y + 5);
-            string sponsor = LerNaPos(colInp, y + 6);
-
-            decimal orcamento;
-            while (true)
-            {
-                string s = LerNaPos(colInp, y + 7);
-                if (decimal.TryParse(s, out orcamento)) break;
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                Texto(colInp, y + 8, "Valor inválido.");
-                Console.ResetColor();
-                Texto(colInp, y + 7, new string(' ', 30));
-            }
-            Texto(colInp, y + 8, new string(' ', 30));
-
-            DateTime prazoInicial;
-            while (true)
-            {
-                string s = LerNaPos(colInp, y + 8);
-                if (DateTime.TryParse(s, out prazoInicial)) break;
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                Texto(colInp, y + 9, "Data inválida.");
-                Console.ResetColor();
-                Texto(colInp, y + 8, new string(' ', 30));
-            }
-            Texto(colInp, y + 9, new string(' ', 30));
-
-            int roi = Ler0a100NaPos(colInp, y + 9);
-            int risco = Ler0a100NaPos(colInp, y + 10);
-            int alinh = Ler0a100NaPos(colInp, y + 11);
-            int urg = Ler0a100NaPos(colInp, y + 12);
-
-            var p = new Projeto
-            {
-                id = id,
-                nome = nome,
-                gerente = gerente,
-                sponsor = sponsor,
-                orcamentoAprovado = orcamento,
-                prazoInicial = prazoInicial,
-                roi = roi,
-                risco = risco,
-                alinhamento = alinh,
-                urgencia = urg,
-                status = "Em Análise",
-                custoReal = 0,
-                novoPrazo = null,
-                progresso = 0
-            };
-            p.RecalcularScoreEAprovacao();
-
-            Texto(colInp, linScore, p.score.ToString());
-            Texto(colInp, linApr, p.aprovacao);
-            Texto(colInp, linStat, p.status);
-
-            Console.SetCursorPosition(colRot + "Salvar cadastro?(S/N): ".Length, linSalvar);
-            string salvar = Console.ReadLine() ?? "N";
-            if (salvar.Equals("S", StringComparison.OrdinalIgnoreCase))
-            {
-                projetos.Add(p);
-                Texto(colRot, linSalvar + 1, "Projeto salvo.");
-            }
-            else
-            {
-                Texto(colRot, linSalvar + 1, "Cadastro cancelado.");
-
-                Texto(colRot, linSalvar + 2, "Cadastrar outro?(S/N): ");
-                string outro = Console.ReadLine() ?? "N";
-                if (!outro.Equals("S", StringComparison.OrdinalIgnoreCase))
-                    break;
-            }
+            Console.ForegroundColor = ConsoleColor.Red;
+            Texto(colInp, y + 4, "! Projeto já cadastrado. Insira outro nome !");
+            Console.ResetColor();
+            Texto(colInp, y + 3, new string(' ', 40));
         }
+        Texto(colInp, y + 4, new string(' ', 45));
+
+        int id;
+        while (true)
+        {
+            string idStr = LerNaPos(colInp, y + 4);
+            if (int.TryParse(idStr, out id) && !ExisteId(id)) break;
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Texto(colInp, y + 5, "! ID inválido ou já cadastrado. Insira outro ID !");
+            Console.ResetColor();
+            Texto(colInp, y + 4, new string(' ', 20));
+        }
+        Texto(colInp, y + 5, new string(' ', 50));
+
+        string gerente = LerNaPos(colInp, y + 5);
+        string sponsor = LerNaPos(colInp, y + 6);
+
+        decimal orcamento;
+        while (true)
+        {
+            string s = LerNaPos(colInp, y + 7);
+            if (decimal.TryParse(s, out orcamento)) break;
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Texto(colInp, y + 8, "Valor inválido.");
+            Console.ResetColor();
+            Texto(colInp, y + 7, new string(' ', 30));
+        }
+        Texto(colInp, y + 8, new string(' ', 30));
+
+        DateTime prazoInicial;
+        while (true)
+        {
+            string s = LerNaPos(colInp, y + 8);
+            if (DateTime.TryParse(s, out prazoInicial)) break;
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Texto(colInp, y + 9, "Data inválida.");
+            Console.ResetColor();
+            Texto(colInp, y + 8, new string(' ', 30));
+        }
+        Texto(colInp, y + 9, new string(' ', 30));
+
+        int roi = Ler0a100NaPos(colInp, y + 9);
+        int risco = Ler0a100NaPos(colInp, y + 10);
+        int alinh = Ler0a100NaPos(colInp, y + 11);
+        int urg = Ler0a100NaPos(colInp, y + 12);
+
+        var p = new Projeto
+        {
+            id = id,
+            nome = nome,
+            gerente = gerente,
+            sponsor = sponsor,
+            orcamentoAprovado = orcamento,
+            prazoInicial = prazoInicial,
+            roi = roi,
+            risco = risco,
+            alinhamento = alinh,
+            urgencia = urg,
+            status = "Em Análise",
+            custoReal = 0,
+            novoPrazo = null,
+            progresso = 0
+        };
+        p.RecalcularScoreEAprovacao();
+
+        Texto(colInp, linScore, p.score.ToString());
+        Texto(colInp, linApr, p.aprovacao);
+        Texto(colInp, linStat, p.status);
+
+        Console.SetCursorPosition(colRot + "Salvar cadastro?(S/N): ".Length, linSalvar);
+        string salvar = Console.ReadLine() ?? "N";
+        if (salvar.Equals("S", StringComparison.OrdinalIgnoreCase))
+        {
+            projetos.Add(p);
+            Texto(colRot, linSalvar + 1, "Projeto salvo.");
+        }
+        else
+        {
+            Texto(colRot, linSalvar + 1, "Cadastro cancelado.");
+        }
+
+        Console.ReadKey();
     }
 
     private void ListarProjetos()
     {
-        Console.Clear();
-        Moldura("Exibir Projetos");
+        tela.PrepararTela("Project Portfolio Management - Exibir Projetos");
+        
+        // --- Constantes de Alinhamento ---
+        const int W_ID = 8;        
+        const int W_NOME = 19;     
+        const int W_STATUS = 13;   
+        const int W_APROV = 15;    
+        const int W_SCORE = 7;     
+        const int W_PROG = 11;     
+        const int W_PRAZO = 10;    
 
-        Console.WriteLine("ID   Nome                  Status         Aprovação    Score  Progresso  Prazo");
-        Console.WriteLine("-------------------------------------------------------------------------------");
+        // O conteúdo da tabela começará na coluna 2 (margem de 1 espaço).
+        int col = 2; 
+        int lin = 3; 
+
+        // 1. Cabeçalho formatado
+        string formatHeader = 
+            $"{"ID",-W_ID}" +
+            $"{"NOME",-W_NOME}" +
+            $"{"STATUS",-W_STATUS}" +
+            $"{"APROVAÇÃO",-W_APROV}" +
+            $"{"SCORE",-W_SCORE}" +
+            $"{"PROGRESSO",-W_PROG}" +
+            $"{"PRAZO",-W_PRAZO}";
+        
+        // Exibir o cabeçalho
+        Texto(col, lin++, formatHeader);
+        
+        // 2. Linha separadora
+        int contentWidth = W_ID + W_NOME + W_STATUS + W_APROV + W_SCORE + W_PROG + W_PRAZO;
+        string separator = new string('═', contentWidth);
+        Texto(col, lin++, separator);
+        
+        // 3. Exibir os projetos
         foreach (var p in projetos)
         {
-            string prazo = p.prazoInicial.HasValue ? p.prazoInicial.Value.ToString("dd/MM/yyyy") : "";
-            Console.WriteLine($"{p.id,-4} {Trunc(p.nome,18),-18} {Trunc(p.status,12),-12} {Trunc(p.aprovacao,10),-10} {p.score,5} {p.progresso,9}%  {prazo,10}");
+            // Truncagem e Formatação
+            string nomeFormatado = Trunc(p.nome, W_NOME);
+            
+            string prazoStr = Trunc(p.prazoInicial?.ToString("dd/MM/yyyy") ?? "", W_PRAZO); 
+            
+            string progressoStr = $"{p.progresso}%";
+
+            string line = 
+                $"{p.id,-W_ID}" +
+                $"{nomeFormatado,-W_NOME}" +
+                $"{p.status,-W_STATUS}" +
+                $"{p.aprovacao,-W_APROV}" +
+                $"{p.score,-W_SCORE}" +
+                $"{progressoStr,-W_PROG}" +
+                $"{prazoStr,-W_PRAZO}";
+            
+            Texto(col, lin++, line);
         }
 
-        Console.WriteLine();
-        int id = LInt("Digite o ID do projeto que deseja visualizar (ou ESC para voltar)");
-        if (id == 0) return;
+        // Adiciona um espaçamento de uma linha entre a lista e a label de input
+        lin++; 
 
-        var proj = projetos.Find(x => x.id == id);
-        if (proj == null)
+        // 4. Rodapé e Input
+        if (projetos.Count > 0)
         {
-            MsgLinha("ID não encontrado.");
-            Console.ReadKey();
-            return;
-        }
+            // Pede o ID na linha atual (lin)
+            Console.SetCursorPosition(col, lin);
+            
+            // LInt é chamado. O prompt está dentro do LInt (que usa Console.Write).
+            int id = LInt("Digite o ID do projeto que deseja visualizar (ou 0 para voltar)", 0);
+            
+            if (id == 0) return;
 
-        VisualizarAtualizar(proj);
+            var proj = projetos.Find(x => x.id == id);
+            if (proj == null)
+            {
+                tela.MostrarMensagem("ID não encontrado. Pressione uma tecla para continuar...");
+                Console.ReadKey();
+                return;
+            }
+
+            VisualizarAtualizar(proj);
+        }
+        else
+        {
+            tela.MostrarMensagem("Nenhum projeto cadastrado. Pressione uma tecla para voltar...");
+            Console.ReadKey();
+        }
     }
 
     private void VisualizarAtualizar(Projeto p)
@@ -208,28 +267,32 @@ public class ProjetoCRUD
         while (true)
         {
             Console.Clear();
-            Moldura("Visualizar Projeto");
+            // Largura do quadro ajustada para 83 (76 + 7)
+            DesenhaQuadro(2, 1, 83, 28, "Visualizar Projeto");
+            
+            int col = 4;
+            int lin = 3;
 
-            Console.WriteLine($"Nome: {p.nome}");
-            Console.WriteLine($"ID: {p.id}");
-            Console.WriteLine($"Gerente de Projeto: {p.gerente}");
-            Console.WriteLine($"Sponsor: {p.sponsor}");
-            Console.WriteLine($"Orçamento Aprovado: R$ {p.orcamentoAprovado:n2}");
-            Console.WriteLine($"Custo Real: R$ {(p.custoReal == 0 ? "" : p.custoReal.ToString("n2"))}");
-            Console.WriteLine($"Desvio de Custo: {p.DesvioCustoTexto()}");
-            Console.WriteLine($"Prazo Inicial: {(p.prazoInicial.HasValue ? p.prazoInicial.Value.ToString("dd/MM/yyyy") : "")}");
-            Console.WriteLine($"Novo Prazo: {(p.novoPrazo.HasValue ? p.novoPrazo.Value.ToString("dd/MM/yyyy") : "")}");
-            Console.WriteLine($"Desvio de Prazo: {p.DesvioPrazoTexto()}");
-            Console.WriteLine($"ROI(%): {p.roi}");
-            Console.WriteLine($"Risco: {p.risco}");
-            Console.WriteLine($"Alinhamento Estratégico: {p.alinhamento}");
-            Console.WriteLine($"Urgência: {p.urgencia}");
-            Console.WriteLine();
-            Console.WriteLine($"Score: {p.score}");
-            Console.WriteLine($"Aprovação: {p.aprovacao}");
-            Console.WriteLine($"Status: {p.status}");
-            Console.WriteLine($"Progresso: {p.progresso}%");
-            Console.WriteLine();
+            Texto(col, lin++, $"Nome: {p.nome}");
+            Texto(col, lin++, $"ID: {p.id}");
+            Texto(col, lin++, $"Gerente de Projeto: {p.gerente}");
+            Texto(col, lin++, $"Sponsor: {p.sponsor}");
+            Texto(col, lin++, $"Orçamento Aprovado: R$ {p.orcamentoAprovado:n2}");
+            Texto(col, lin++, $"Custo Real: R$ {(p.custoReal == 0 ? "" : p.custoReal.ToString("n2"))}");
+            Texto(col, lin++, $"Desvio de Custo: {p.DesvioCustoTexto()}");
+            Texto(col, lin++, $"Prazo Inicial: {(p.prazoInicial.HasValue ? p.prazoInicial.Value.ToString("dd/MM/yyyy") : "")}");
+            Texto(col, lin++, $"Novo Prazo: {(p.novoPrazo.HasValue ? p.novoPrazo.Value.ToString("dd/MM/yyyy") : "")}");
+            Texto(col, lin++, $"Desvio de Prazo: {p.DesvioPrazoTexto()}");
+            Texto(col, lin++, $"ROI(%): {p.roi}");
+            Texto(col, lin++, $"Risco: {p.risco}");
+            Texto(col, lin++, $"Alinhamento Estratégico: {p.alinhamento}");
+            Texto(col, lin++, $"Urgência: {p.urgencia}");
+            lin++;
+            Texto(col, lin++, $"Score: {p.score}");
+            Texto(col, lin++, $"Aprovação: {p.aprovacao}");
+            Texto(col, lin++, $"Status: {p.status}");
+            Texto(col, lin++, $"Progresso: {p.progresso}%");
+            lin++;
 
             if (!Confirma("Atualizar Projeto?(S/N)").Equals("S", StringComparison.OrdinalIgnoreCase))
                 break;
@@ -251,90 +314,153 @@ public class ProjetoCRUD
             p.status = "Em Execução";
             p.progresso = Limita(LInt("Progresso (%)", 0, 100), 0, 100);
 
-            MsgLinha("Alterações salvas.");
+            tela.MostrarMensagem("Alterações salvas.");
             Console.ReadKey();
         }
     }
 
     private void DashboardProjetos()
     {
-        Console.Clear();
-        Moldura("Dashboard de Projetos");
-        Console.WriteLine("ID   Nome               Status        CustoReal   DesvioC  Prazo      DesvioP  Prog");
-        Console.WriteLine("-------------------------------------------------------------------------------------");
-        foreach (var p in projetos)
+        // CORREÇÃO: Usar tela.PrepararTela para a moldura principal (consistente com o menu principal).
+        tela.PrepararTela("Project Portfolio Management - Dashboard de Projetos");
+
+        int lin = 3;
+        int col = 4;
+        
+        Texto(col, lin++, "Projetos em Análise: " + projetos.Count(p => p.status == "Em Análise"));
+        Texto(col, lin++, "Projetos Aprovados e em Execução: " + projetos.Count(p => p.status == "Em Execução"));
+        Texto(col, lin++, "Projetos Encerrados: " + projetos.Count(p => p.status == "Encerrado"));
+        lin++;
+        
+        int totalProjetos = projetos.Count;
+        if (totalProjetos > 0)
         {
-            string prazo = p.novoPrazo.HasValue ? p.novoPrazo.Value.ToString("dd/MM/yyyy")
-                                                : (p.prazoInicial.HasValue ? p.prazoInicial.Value.ToString("dd/MM/yyyy") : "");
-            Console.WriteLine(
-                $"{p.id,-4} {Trunc(p.nome,18),-18} {Trunc(p.status,12),-12} " +
-                $"{(p.custoReal==0? "": ("R$ "+p.custoReal.ToString("n0"))),-11} " +
-                $"{Trunc(p.DesvioCustoTexto(),6),-6} {prazo,10} {Trunc(p.DesvioPrazoTexto(),6),-6} {p.progresso,4}%");
+            double mediaScore = projetos.Average(p => p.score);
+            Texto(col, lin++, "Média de Score dos Projetos: " + Math.Round(mediaScore, 1));
+
+            decimal orcamentoTotal = projetos.Sum(p => p.orcamentoAprovado);
+            Texto(col, lin++, "Orçamento Total Aprovado: $" + orcamentoTotal.ToString("N2"));
+
+            decimal custoRealTotal = projetos.Sum(p => p.custoReal);
+            Texto(col, lin++, "Custo Real Total: $" + custoRealTotal.ToString("N2"));
+
+            int projetosAtrasados = projetos.Count(p => p.novoPrazo.HasValue && p.prazoInicial.HasValue && p.novoPrazo.Value > p.prazoInicial.Value);
+            Texto(col, lin++, "Projetos com Atraso (Novo Prazo > Prazo Inicial): " + projetosAtrasados);
+
+            int projetosDesvioPositivo = projetos.Count(p => p.orcamentoAprovado > 0 && p.custoReal < p.orcamentoAprovado);
+            Texto(col, lin++, "Projetos com Desvio Positivo de Custo: " + projetosDesvioPositivo);
         }
-        Console.WriteLine();
-        Console.Write("Voltar (V): "); Console.ReadLine();
+        else
+        {
+            Texto(col, lin++, "Não há projetos cadastrados para gerar o Dashboard.");
+        }
+
+        // A mensagem "Pressione ESC para voltar:" agora será exibida DENTRO da moldura
+        // devido à correção em MostrarRodapePadrao().
+        tela.MostrarRodapePadrao();
+        Console.ReadKey(true); // Espera por uma tecla para sair da tela.
     }
 
     private void FechamentoFormal()
     {
-        if (projetos.Count == 0)
+        Console.Clear();
+        // Largura do quadro ajustada para 83 (76 + 7)
+        DesenhaQuadro(2, 1, 83, 28, "Fechamento Formal de Projeto");
+
+        int colRot = 4;
+        int colInp = 28;
+        int lin = 3;
+
+        Texto(colRot, lin++, "ID do Projeto para Fechamento:");
+        string idStr = LerNaPos(colInp, 3);
+
+        if (!int.TryParse(idStr, out int id))
         {
-            MsgLinha("Nenhum projeto cadastrado.");
+            Texto(colRot, lin + 1, "ID inválido.");
             Console.ReadKey();
             return;
         }
 
-        int id = LInt("Informe o ID do projeto para fechamento");
-        var p = projetos.Find(x => x.id == id);
+        Projeto? p = projetos.Find(proj => proj.id == id);
+
         if (p == null)
         {
-            MsgLinha("ID não encontrado.");
+            Texto(colRot, lin + 1, "Projeto não encontrado.");
             Console.ReadKey();
             return;
         }
+        
+        // Exibir dados atuais
+        lin = 6;
+        Texto(colRot, lin++, $"Nome: {p.nome}");
+        Texto(colRot, lin++, $"Status Atual: {p.status}");
+        Texto(colRot, lin++, $"Prazo Inicial: {p.prazoInicial:dd/MM/yyyy}");
+        Texto(colRot, lin++, $"Orçamento Aprovado: ${p.orcamentoAprovado:N2}");
+        lin++;
 
-        Console.Clear();
-        Moldura("Fechamento Formal de Projeto");
+        // Novos dados
+        Texto(colRot, lin++, "Custo Real ($):");
+        Texto(colRot, lin++, "Novo Prazo (dd/mm/aaaa):");
+        Texto(colRot, lin++, "Progresso (%):");
+        lin++;
+        
+        int linFinalizar = lin;
+        Texto(colRot, linFinalizar, "Finalizar Projeto? (S/N): ");
 
-        Console.WriteLine($"Nome: {p.nome}");
-        Console.WriteLine($"ID: {p.id}");
-        Console.WriteLine($"Gerente de Projeto: {p.gerente}");
-        Console.WriteLine($"Sponsor: {p.sponsor}");
-        Console.WriteLine($"Orçamento Aprovado: R$ {p.orcamentoAprovado:n2}");
-        Console.WriteLine($"Custo Real: R$ {p.custoReal:n2}");
-        Console.WriteLine($"Desvio de Custo: {p.DesvioCustoTexto()}");
-        Console.WriteLine($"Prazo Inicial: {(p.prazoInicial.HasValue ? p.prazoInicial.Value.ToString("dd/MM/yyyy") : "")}");
-        Console.WriteLine($"Data de Término: {(p.novoPrazo.HasValue ? p.novoPrazo.Value.ToString("dd/MM/yyyy") : "")}");
-        Console.WriteLine($"Desvio de Prazo: {p.DesvioPrazoTexto()}");
-        Console.WriteLine($"ROI(%): {p.roi}");
-        Console.WriteLine($"Risco: {p.risco}");
-        Console.WriteLine($"Alinhamento Estratégico: {p.alinhamento}");
-        Console.WriteLine($"Urgência: {p.urgencia}");
-        Console.WriteLine();
-        Console.WriteLine($"Score: {p.score}");
-        Console.WriteLine($"Aprovação: {p.aprovacao}");
-        Console.WriteLine($"Status: {p.status}");
-        Console.WriteLine($"Progresso: {p.progresso}%");
-        Console.WriteLine();
-
-        string accite = Confirma("Entrega do Produto (Accite) (S/N)");
-        string doc = Confirma("Documentação final anexada? (S/N)");
-        string enviar = Confirma("Enviar para aprovação do PMO? (S/N)");
-        string fechar = Confirma("Confirmar fechamento do projeto? (S/N)");
-
-        if (accite.Equals("S", StringComparison.OrdinalIgnoreCase) &&
-            doc.Equals("S", StringComparison.OrdinalIgnoreCase) &&
-            enviar.Equals("S", StringComparison.OrdinalIgnoreCase) &&
-            fechar.Equals("S", StringComparison.OrdinalIgnoreCase))
+        decimal custoReal;
+        while (true)
         {
+            string s = LerNaPos(colInp, linFinalizar - 4);
+            if (decimal.TryParse(s, out custoReal)) break;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Texto(colInp, linFinalizar - 3, "Valor inválido.");
+            Console.ResetColor();
+            Texto(colInp, linFinalizar - 4, new string(' ', 30));
+        }
+        Texto(colInp, linFinalizar - 3, new string(' ', 30));
+
+
+        DateTime? novoPrazo = null;
+        while (true)
+        {
+            string s = LerNaPos(colInp, linFinalizar - 3);
+            if (string.IsNullOrWhiteSpace(s)) break;
+            if (DateTime.TryParse(s, out DateTime np))
+            {
+                novoPrazo = np;
+                break;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Texto(colInp, linFinalizar - 2, "Data inválida ou vazia. Use dd/mm/aaaa.");
+            Console.ResetColor();
+            Texto(colInp, linFinalizar - 3, new string(' ', 30));
+        }
+        Texto(colInp, linFinalizar - 2, new string(' ', 50));
+        
+        int progresso = Ler0a100NaPos(colInp, linFinalizar - 2);
+
+
+        Console.SetCursorPosition(colInp, linFinalizar);
+        string finalizar = Console.ReadLine() ?? "N";
+
+        if (finalizar.Equals("S", StringComparison.OrdinalIgnoreCase))
+        {
+            p.custoReal = custoReal;
+            p.novoPrazo = novoPrazo;
+            p.progresso = progresso;
             p.status = "Encerrado";
-            p.progresso = 100;
-            MsgLinha("Projeto encerrado.");
+
+            Texto(colRot, linFinalizar + 1, "Projeto encerrado com sucesso.");
         }
         else
         {
-            MsgLinha("Fechamento não concluído.");
+            Texto(colRot, linFinalizar + 1, "Fechamento cancelado. Dados temporários salvos.");
+            p.custoReal = custoReal;
+            p.novoPrazo = novoPrazo;
+            p.progresso = progresso;
         }
+
         Console.ReadKey();
     }
 
@@ -373,14 +499,16 @@ public class ProjetoCRUD
         return valor;
     }
 
+    // Métodos Auxiliares
     private string Trunc(string s, int max) => string.IsNullOrEmpty(s) ? "" : (s.Length <= max ? s : s.Substring(0, max));
 
     private void Moldura(string titulo)
     {
-        string barra = new string('═', 74);
+        // Largura da barra aumentada de 74 para 81 (74 + 7)
+        string barra = new string('═', 81);
         Console.WriteLine("╔" + barra + "╗");
-        Console.WriteLine("║" + Centraliza(titulo, 74) + "║");
-        Console.WriteLine("║" + new string(' ', 74) + "║");
+        Console.WriteLine("║" + Centraliza(titulo, 81) + "║");
+        Console.WriteLine("║" + new string(' ', 81) + "║");
     }
 
     private string Centraliza(string texto, int largura)

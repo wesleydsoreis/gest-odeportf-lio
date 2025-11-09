@@ -31,7 +31,6 @@ while (true)
 
     if (opcao == "ESC")
     {
-
         continue;
     }
 
