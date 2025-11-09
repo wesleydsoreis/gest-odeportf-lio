@@ -45,32 +45,93 @@ public class ProjetoCRUD
         while (true)
         {
             Console.Clear();
-            Moldura("Cadastrar Projeto");
 
-            string nome = Perg("Nome");
-            if (ExisteNome(nome))
+            int x = 2, y = 1, w = 76, h = 28;
+            DesenhaQuadro(x, y, w, h, "Cadastrar Projeto");
+
+            int colRot = x + 3;
+            int colInp = x + 28;
+
+            int lin = y + 3;
+            Texto(colRot, lin++, "Nome:");
+            Texto(colRot, lin++, "ID:");
+            Texto(colRot, lin++, "Gerente de Projeto:");
+            Texto(colRot, lin++, "Sponsor:");
+            Texto(colRot, lin++, "Orçamento Aprovado($):");
+            Texto(colRot, lin++, "Prazo (dd/mm/aaaa):");
+
+            Texto(colRot, lin++, "ROI(%):");
+            Texto(colRot, lin++, "Risco:");
+            Texto(colRot, lin++, "Alinhamento Estratégico:");
+            Texto(colRot, lin++, "Urgência:");
+
+            lin++;
+            int linScore = lin; Texto(colRot, lin++, "Score:");
+            int linApr = lin; Texto(colRot, lin++, "Aprovação:");
+            int linStat = lin; Texto(colRot, lin++, "Status:");
+
+            lin++;
+            int linSalvar = lin; Texto(colRot, linSalvar, "Salvar cadastro?(S/N): ");
+
+            string nome;
+            while (true)
             {
-                MsgLinha("! Projeto \"" + nome + "\" já cadastrado. Insira outro nome !");
-                nome = Perg("Nome");
-            }
+                nome = LerNaPos(colInp, y + 3);
+                if (!ExisteNome(nome)) break;
 
-            int id = LInt("ID");
-            if (ExisteId(id))
+                Console.ForegroundColor = ConsoleColor.Red;
+                Texto(colInp, y + 4, "! Projeto já cadastrado. Insira outro nome !");
+                Console.ResetColor();
+                Texto(colInp, y + 3, new string(' ', 40));
+            }
+            Texto(colInp, y + 4, new string(' ', 45));
+
+            int id;
+            while (true)
             {
-                MsgLinha("! ID \"" + id + "\" já cadastrado. Insira outro ID !");
-                id = LInt("ID");
+                string idStr = LerNaPos(colInp, y + 4);
+                if (int.TryParse(idStr, out id) && !ExisteId(id)) break;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Texto(colInp, y + 5, "! ID inválido ou já cadastrado. Insira outro ID !");
+                Console.ResetColor();
+                Texto(colInp, y + 4, new string(' ', 20));
             }
+            Texto(colInp, y + 5, new string(' ', 50));
 
-            string gerente = Perg("Gerente de Projeto");
-            string sponsor = Perg("Sponsor");
-            decimal orc = LDec("Orçamento Aprovado (R$)");
-            DateTime prazo = LDate("Prazo (dd/mm/aaaa)");
+            string gerente = LerNaPos(colInp, y + 5);
+            string sponsor = LerNaPos(colInp, y + 6);
 
-            // >>> Critérios: TODOS obrigatoriamente 0..100
-            int roi   = LerValorDeZeroACem("ROI");
-            int risco = LerValorDeZeroACem("Risco");
-            int alinh = LerValorDeZeroACem("Alinhamento Estratégico");
-            int urg   = LerValorDeZeroACem("Urgência");
+            decimal orcamento;
+            while (true)
+            {
+                string s = LerNaPos(colInp, y + 7);
+                if (decimal.TryParse(s, out orcamento)) break;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Texto(colInp, y + 8, "Valor inválido.");
+                Console.ResetColor();
+                Texto(colInp, y + 7, new string(' ', 30));
+            }
+            Texto(colInp, y + 8, new string(' ', 30));
+
+            DateTime prazoInicial;
+            while (true)
+            {
+                string s = LerNaPos(colInp, y + 8);
+                if (DateTime.TryParse(s, out prazoInicial)) break;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Texto(colInp, y + 9, "Data inválida.");
+                Console.ResetColor();
+                Texto(colInp, y + 8, new string(' ', 30));
+            }
+            Texto(colInp, y + 9, new string(' ', 30));
+
+            int roi = Ler0a100NaPos(colInp, y + 9);
+            int risco = Ler0a100NaPos(colInp, y + 10);
+            int alinh = Ler0a100NaPos(colInp, y + 11);
+            int urg = Ler0a100NaPos(colInp, y + 12);
 
             var p = new Projeto
             {
@@ -78,8 +139,8 @@ public class ProjetoCRUD
                 nome = nome,
                 gerente = gerente,
                 sponsor = sponsor,
-                orcamentoAprovado = orc,
-                prazoInicial = prazo,
+                orcamentoAprovado = orcamento,
+                prazoInicial = prazoInicial,
                 roi = roi,
                 risco = risco,
                 alinhamento = alinh,
@@ -91,25 +152,29 @@ public class ProjetoCRUD
             };
             p.RecalcularScoreEAprovacao();
 
-            Console.WriteLine();
-            Console.WriteLine($"Score: {p.score}");
-            Console.WriteLine($"Aprovação: {p.aprovacao}");
-            Console.WriteLine($"Status: {p.status}");
-            Console.WriteLine();
+            Texto(colInp, linScore, p.score.ToString());
+            Texto(colInp, linApr, p.aprovacao);
+            Texto(colInp, linStat, p.status);
 
-            string salvar = Confirma("Salvar cadastro?(S/N)");
+            Console.SetCursorPosition(colRot + "Salvar cadastro?(S/N): ".Length, linSalvar);
+            string salvar = Console.ReadLine() ?? "N";
             if (salvar.Equals("S", StringComparison.OrdinalIgnoreCase))
             {
                 projetos.Add(p);
-                MsgLinha("Projeto salvo.");
+                Texto(colRot, linSalvar + 1, "Projeto salvo.");
             }
+            else
+            {
+                Texto(colRot, linSalvar + 1, "Cadastro cancelado.");
 
-            if (!Confirma("Cadastrar outro?(S/N)").Equals("S", StringComparison.OrdinalIgnoreCase))
-                break;
+                Texto(colRot, linSalvar + 2, "Cadastrar outro?(S/N): ");
+                string outro = Console.ReadLine() ?? "N";
+                if (!outro.Equals("S", StringComparison.OrdinalIgnoreCase))
+                    break;
+            }
         }
     }
 
-    // ===== 2) Exibir Projetos =====
     private void ListarProjetos()
     {
         Console.Clear();
@@ -177,7 +242,6 @@ public class ProjetoCRUD
             p.prazoInicial = LDate("Prazo Inicial (dd/mm/aaaa)");
             p.novoPrazo = LDate("Novo Prazo (dd/mm/aaaa)");
 
-            // >>> Critérios: obrigatoriamente 0..100
             p.roi         = LerValorDeZeroACem("ROI");
             p.risco       = LerValorDeZeroACem("Risco");
             p.alinhamento = LerValorDeZeroACem("Alinhamento Estratégico");
@@ -192,7 +256,6 @@ public class ProjetoCRUD
         }
     }
 
-    // ===== 3) Dashboard de Projetos =====
     private void DashboardProjetos()
     {
         Console.Clear();
@@ -212,7 +275,6 @@ public class ProjetoCRUD
         Console.Write("Voltar (V): "); Console.ReadLine();
     }
 
-    // ===== 4) Fechamento Formal =====
     private void FechamentoFormal()
     {
         if (projetos.Count == 0)
@@ -276,7 +338,6 @@ public class ProjetoCRUD
         Console.ReadKey();
     }
 
-    // ===== Função de validação 0..100 (exige valor correto) =====
     private int LerValorDeZeroACem(string label)
     {
         int valor;
@@ -312,7 +373,6 @@ public class ProjetoCRUD
         return valor;
     }
 
-    // ===== Helpers =====
     private string Trunc(string s, int max) => string.IsNullOrEmpty(s) ? "" : (s.Length <= max ? s : s.Substring(0, max));
 
     private void Moldura(string titulo)
@@ -331,11 +391,13 @@ public class ProjetoCRUD
     }
 
     private void MsgLinha(string msg) => Console.WriteLine(msg);
+
     private string Perg(string rotulo)
     {
         Console.Write(rotulo + ": ");
         return Console.ReadLine() ?? "";
     }
+
     private int LInt(string rotulo, int min = int.MinValue, int max = int.MaxValue)
     {
         int v;
@@ -346,6 +408,7 @@ public class ProjetoCRUD
             Console.WriteLine("Valor inválido.");
         }
     }
+
     private decimal LDec(string rotulo)
     {
         decimal v;
@@ -356,6 +419,7 @@ public class ProjetoCRUD
             Console.WriteLine("Valor inválido.");
         }
     }
+
     private DateTime LDate(string rotulo)
     {
         DateTime v;
@@ -366,7 +430,9 @@ public class ProjetoCRUD
             Console.WriteLine("Data inválida.");
         }
     }
+
     private int Limita(int v, int min, int max) => Math.Min(Math.Max(v, min), max);
+
     private string Confirma(string rotulo)
     {
         Console.Write(rotulo + " ");
@@ -376,4 +442,58 @@ public class ProjetoCRUD
 
     private bool ExisteId(int id) => projetos.Exists(p => p.id == id);
     private bool ExisteNome(string nome) => projetos.Exists(p => p.nome.Equals(nome, StringComparison.OrdinalIgnoreCase));
+
+    void DesenhaQuadro(int x, int y, int w, int h, string titulo)
+    {
+        string horiz = new string('═', w - 2);
+
+        Console.SetCursorPosition(x, y);         Console.Write('╔');
+        Console.Write(horiz);                    Console.Write('╗');
+
+        for (int i = 1; i < h - 1; i++)
+        {
+            Console.SetCursorPosition(x,     y + i); Console.Write('║');
+            Console.SetCursorPosition(x+w-1, y + i); Console.Write('║');
+        }
+
+        Console.SetCursorPosition(x, y + h - 1); Console.Write('╚');
+        Console.Write(horiz);                    Console.Write('╝');
+
+        int cx = x + (w - 2 - titulo.Length)/2 + 1;
+        Console.SetCursorPosition(cx, y + 1);
+        Console.Write(titulo);
+    }
+
+    void Texto(int col, int lin, string s)
+    {
+        Console.SetCursorPosition(col, lin);
+        Console.Write(s);
+    }
+
+    string LerNaPos(int col, int lin)
+    {
+        Console.SetCursorPosition(col, lin);
+        return Console.ReadLine() ?? "";
+    }
+
+    int Ler0a100NaPos(int col, int lin, int larguraMsg = 50)
+    {
+        while (true)
+        {
+            Console.SetCursorPosition(col, lin);
+            string entrada = Console.ReadLine() ?? "";
+
+            if (int.TryParse(entrada, out int v) && v >= 0 && v <= 100)
+            {
+                Console.SetCursorPosition(col, lin + 1);
+                Console.Write(new string(' ', larguraMsg));
+                return v;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.SetCursorPosition(col, lin + 1);
+            Console.Write("Valor inválido! Digite um número entre 0 e 100.");
+            Console.ResetColor();
+        }
+    }
 }

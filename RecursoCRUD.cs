@@ -111,7 +111,6 @@ public class RecursoCRUD
         Console.Write("Voltar (V): "); Console.ReadLine();
     }
 
-    // Helpers
     private string Trunc(string s, int max) => string.IsNullOrEmpty(s) ? "" : (s.Length <= max ? s : s.Substring(0, max));
     private void Moldura(string titulo)
     {

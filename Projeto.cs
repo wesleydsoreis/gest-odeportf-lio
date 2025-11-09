@@ -2,29 +2,28 @@ using System;
 
 public class Projeto
 {
-    // Básicos
+    
     public int id;
     public string nome;
     public string gerente;
     public string sponsor;
 
-    // Custos e prazos
-    public decimal orcamentoAprovado;  // R$
-    public decimal custoReal;          // R$
-    public DateTime? prazoInicial;     // Data planejada
-    public DateTime? novoPrazo;        // Data replanejada
-    public int progresso;              // 0..100 (%)
+    public decimal orcamentoAprovado;  
+    public decimal custoReal;          
+    public DateTime? prazoInicial;    
+    public DateTime? novoPrazo;        
+    public int progresso;             
 
-    // Critérios de avaliação (TODOS 0..100)
-    public int roi;            // 0..100
-    public int risco;          // 0..100
-    public int alinhamento;    // 0..100
-    public int urgencia;       // 0..100
+    
+    public int roi;            
+    public int risco;          
+    public int alinhamento;    
+    public int urgencia;      
 
-    // Derivados
-    public int score;          // 0..100 (média ponderada)
-    public string aprovacao;   // "Arovado" / "Não Aprovado"
-    public string status;      // "Em Análise" / "Em Execução" / "Encerrado"
+
+    public int score;          
+    public string aprovacao; 
+    public string status;    
 
     public Projeto()
     {
@@ -34,15 +33,17 @@ public class Projeto
         this.status = "Em Análise";
         this.progresso = 0;
     }
-public void RecalcularScoreEAprovacao()
-{
-    score = (alinhamento * 2
-           + roi         * 3
-           + urgencia    * 3
-           + risco       * 2) / 10;
 
-    aprovacao = (score >= 70) ? "Aprovado" : "Não Aprovado";
-}
+    public void RecalcularScoreEAprovacao()
+    {
+        score = (alinhamento * 2
+               + roi         * 3
+               + urgencia    * 3
+               + risco       * 2) / 10;
+
+        aprovacao = (score >= 70) ? "Aprovado" : "Não Aprovado";
+    }
+
     public string DesvioCustoTexto()
     {
         if (orcamentoAprovado <= 0 || custoReal <= 0) return "";
