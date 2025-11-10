@@ -41,17 +41,55 @@ public class RecursoCRUD
     private void Cadastrar()
     {
         Console.Clear();
-        Moldura("Cadastrar Recurso");
+        
+        // --- Configuração da Tela ---
+        int x = 2, y = 1, w = 83, h = 18;
+        DesenhaQuadro(x, y, w, h, "Cadastrar Recurso");
+
+        int colRot = x + 3; // Coluna inicial dos rótulos
+        int lin = y + 3;
+        
         var r = new Recurso();
-        Console.Write("Nome: "); r.nome = Console.ReadLine();
-        Console.Write("Área/Departamento: "); r.areaDepartamento = Console.ReadLine();
-        Console.Write("Cargo/Função: "); r.funcao = Console.ReadLine();
-        Console.Write("Salvar cadastro?(S/N): ");
-        if ((Console.ReadLine() ?? "N").Trim().ToUpper() == "S")
+        
+        // --- Captura de Dados (Posicionamento Dinâmico) ---
+        
+        // 1. Nome:
+        string labelNome = "Nome: ";
+        Texto(colRot, lin, labelNome);
+        r.nome = LerNaPos(colRot + labelNome.Length, lin++); // Input logo após o rótulo
+
+        // 2. Área/Departamento:
+        string labelArea = "Área/Departamento: ";
+        Texto(colRot, lin, labelArea);
+        r.areaDepartamento = LerNaPos(colRot + labelArea.Length, lin++); // Input logo após o rótulo
+
+        // 3. Cargo/Função:
+        string labelFuncao = "Cargo/Função: ";
+        Texto(colRot, lin, labelFuncao);
+        r.funcao = LerNaPos(colRot + labelFuncao.Length, lin++); // Input logo após o rótulo
+        
+        r.alocacaoPercent = 0; // Inicializa a alocação
+
+        // --- Salvar ---
+        lin++;
+        int linSalvar = lin; 
+        string labelSalvar = "Salvar cadastro?(S/N): ";
+        Texto(colRot, linSalvar, labelSalvar);
+
+        // Posiciona o cursor logo após o rótulo de salvar
+        Console.SetCursorPosition(colRot + labelSalvar.Length, linSalvar);
+        
+        string salvar = Console.ReadLine() ?? "N";
+        if (salvar.Equals("S", StringComparison.OrdinalIgnoreCase))
         {
             recursos.Add(r);
-            Console.WriteLine("Recurso salvo.");
+            Texto(colRot, linSalvar + 1, "Recurso salvo.");
         }
+        else
+        {
+            Texto(colRot, linSalvar + 1, "Cadastro cancelado.");
+        }
+
         Console.ReadKey();
     }
 
@@ -111,7 +149,10 @@ public class RecursoCRUD
         Console.Write("Voltar (V): "); Console.ReadLine();
     }
 
+    // --- Métodos Auxiliares ---
+
     private string Trunc(string s, int max) => string.IsNullOrEmpty(s) ? "" : (s.Length <= max ? s : s.Substring(0, max));
+    
     private void Moldura(string titulo)
     {
         string barra = new string('═', 66);
@@ -119,10 +160,48 @@ public class RecursoCRUD
         Console.WriteLine("║" + Centraliza(titulo, 66) + "║");
         Console.WriteLine("║" + new string(' ', 66) + "║");
     }
+    
     private string Centraliza(string texto, int largura)
     {
         if (texto.Length > largura) texto = texto.Substring(0, largura);
         int pad = (largura - texto.Length) / 2;
         return new string(' ', pad) + texto + new string(' ', largura - pad - texto.Length);
+    }
+    
+    // Métodos copiados de ProjetoCRUD para Desenho e Input
+    void DesenhaQuadro(int x, int y, int w, int h, string titulo)
+    {
+        string horiz = new string('═', w - 2);
+
+        Console.SetCursorPosition(x, y);         Console.Write('╔');
+        Console.Write(horiz);                    Console.Write('╗');
+
+        for (int i = 1; i < h - 1; i++)
+        {
+            Console.SetCursorPosition(x,     y + i); Console.Write('║');
+            Console.SetCursorPosition(x+w-1, y + i); Console.Write('║');
+        }
+
+        Console.SetCursorPosition(x, y + h - 1); Console.Write('╚');
+        Console.Write(horiz);                    Console.Write('╝');
+
+        int cx = x + (w - 2 - titulo.Length)/2 + 1;
+        Console.SetCursorPosition(cx, y + 1);
+        Console.Write(titulo);
+    }
+
+    void Texto(int col, int lin, string s)
+    {
+        Console.SetCursorPosition(col, lin);
+        Console.Write(s);
+    }
+
+    string LerNaPos(int col, int lin)
+    {
+        Console.SetCursorPosition(col, lin);
+        // Limpa a linha antes de ler (por exemplo, 40 espaços para cobrir o campo)
+        Console.Write(new string(' ', 40));
+        Console.SetCursorPosition(col, lin);
+        return Console.ReadLine() ?? "";
     }
 }
