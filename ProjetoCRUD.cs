@@ -11,10 +11,10 @@ public class ProjetoCRUD
     {
         this.tela = tela;
 
-        // Exemplos iniciais p/ testes
-        projetos.Add(new Projeto { id = 1001, nome = "Expansao Digital", gerente = "Alice", sponsor = "Bob", orcamentoAprovado = 150000m, prazoInicial = new DateTime(2025, 12, 31), roi = 85, risco = 20, alinhamento = 90, urgencia = 70, status = "Em Execução", progresso = 50, custoReal = 143000m });
-        projetos.Add(new Projeto { id = 1002, nome = "Migracao Cloud",   gerente = "Carlos", sponsor = "Daniela", orcamentoAprovado =  50000m, prazoInicial = new DateTime(2025, 10, 15), roi = 60, risco = 50, alinhamento = 70, urgencia = 60, status = "Em Análise", progresso = 0 });
-        projetos.Add(new Projeto { id = 1003, nome = "Sistema CRM",      gerente = "Eduardo", sponsor = "Fernanda", orcamentoAprovado = 80000m, prazoInicial = new DateTime(2026, 03, 01), roi = 95, risco = 10, alinhamento = 95, urgencia = 90, status = "Encerrado", progresso = 100, custoReal = 82000m });
+        // seeds para teste
+        projetos.Add(new Projeto { id = 1001, nome = "Expansao Digital", gerente = "Alice", sponsor = "Bob", orcamentoAprovado = 150000m, prazoInicial = new DateTime(2025, 12, 31), roi = 85, risco = 20, alinhamento = 90, urgencia = 70, status = "Em Execução", progresso = 50 });
+        projetos.Add(new Projeto { id = 1002, nome = "Migracao Cloud",   gerente = "Carlos", sponsor = "Daniela", orcamentoAprovado = 50000m, prazoInicial = new DateTime(2025, 10, 15), roi = 60, risco = 50, alinhamento = 70, urgencia = 60, status = "Em Análise",  progresso = 0  });
+        projetos.Add(new Projeto { id = 1003, nome = "Sistema CRM",      gerente = "Eduardo", sponsor = "Fernanda", orcamentoAprovado = 80000m, prazoInicial = new DateTime(2026, 03, 01), roi = 95, risco = 10, alinhamento = 95, urgencia = 90, status = "Encerrado", progresso = 100 });
         projetos.ForEach(p => p.RecalcularScoreEAprovacao());
     }
 
@@ -42,21 +42,23 @@ public class ProjetoCRUD
             else
             {
                 tela.MostrarMensagem("Opção inválida. Pressione uma tecla para continuar...");
-                Console.ReadKey();
+                Console.ReadKey(true);
             }
         }
     }
 
-    // ============================================================
-    // 1) CADASTRAR PROJETO (layout com quadro 83x28 + campos na direita)
-    // ============================================================
+    // =================== CADASTRAR ===================
     private void CadastrarProjeto()
     {
+        // LIMPA qualquer lixo da tela anterior
+        Console.Clear();
+
         int x = 2, y = 1, w = 83, h = 28;
         DesenhaQuadro(x, y, w, h, "Cadastrar Projeto");
 
         int colRot = x + 3;
         int colInp = x + 28;
+        int maxInput = (x + w - 2) - colInp; // largura segura até a borda
 
         int lin = y + 3;
         Texto(colRot, lin++, "Nome:");
@@ -69,71 +71,69 @@ public class ProjetoCRUD
         Texto(colRot, lin++, "Risco:");
         Texto(colRot, lin++, "Alinhamento Estratégico:");
         Texto(colRot, lin++, "Urgência:");
-        lin++;
 
+        lin++;
         int linScore = lin; Texto(colRot, lin++, "Score:");
         int linApr   = lin; Texto(colRot, lin++, "Aprovação:");
         int linStat  = lin; Texto(colRot, lin++, "Status:");
         lin++;
-
         int linSalvar = lin; Texto(colRot, linSalvar, "Salvar cadastro?(S/N): ");
 
-        // Nome (com verificação de duplicidade)
+        // ===== entradas (com limite) =====
         string nome;
         while (true)
         {
-            nome = LerNaPos(colInp, y + 3);
+            nome = LerNaPosLimitada(colInp, y + 3, maxInput);
             if (!ExisteNome(nome)) break;
 
             Console.ForegroundColor = ConsoleColor.Red;
             Texto(colInp, y + 4, "! Projeto já cadastrado. Insira outro nome !");
             Console.ResetColor();
-            Texto(colInp, y + 3, new string(' ', 40));
+            Texto(colInp, y + 3, new string(' ', maxInput));
         }
-        Texto(colInp, y + 4, new string(' ', 45));
+        Texto(colInp, y + 4, new string(' ', maxInput));
 
-        // ID (único)
         int id;
         while (true)
         {
-            string idStr = LerNaPos(colInp, y + 4);
+            string idStr = LerNaPosLimitada(colInp, y + 4, Math.Min(maxInput, 10));
             if (int.TryParse(idStr, out id) && !ExisteId(id)) break;
 
             Console.ForegroundColor = ConsoleColor.Red;
             Texto(colInp, y + 5, "! ID inválido ou já cadastrado. Insira outro ID !");
             Console.ResetColor();
-            Texto(colInp, y + 4, new string(' ', 20));
+            Texto(colInp, y + 4, new string(' ', Math.Min(maxInput, 10)));
         }
-        Texto(colInp, y + 5, new string(' ', 50));
+        Texto(colInp, y + 5, new string(' ', maxInput));
 
-        string gerente = LerNaPos(colInp, y + 5);
-        string sponsor = LerNaPos(colInp, y + 6);
+        string gerente = LerNaPosLimitada(colInp, y + 5, maxInput);
+        string sponsor = LerNaPosLimitada(colInp, y + 6, maxInput);
 
         decimal orcamento;
         while (true)
         {
-            string s = LerNaPos(colInp, y + 7);
+            string s = LerNaPosLimitada(colInp, y + 7, Math.Min(maxInput, 20));
             if (decimal.TryParse(s, out orcamento)) break;
 
             Console.ForegroundColor = ConsoleColor.Red;
             Texto(colInp, y + 8, "Valor inválido.");
             Console.ResetColor();
-            Texto(colInp, y + 7, new string(' ', 30));
+            Texto(colInp, y + 7, new string(' ', Math.Min(maxInput, 20)));
         }
-        Texto(colInp, y + 8, new string(' ', 30));
+        Texto(colInp, y + 8, new string(' ', maxInput));
 
         DateTime prazoInicial;
         while (true)
         {
-            string s = LerNaPos(colInp, y + 8);
+            string s = LerNaPosLimitada(colInp, y + 8, Math.Min(maxInput, 10));
             if (DateTime.TryParse(s, out prazoInicial)) break;
 
             Console.ForegroundColor = ConsoleColor.Red;
             Texto(colInp, y + 9, "Data inválida.");
             Console.ResetColor();
-            Texto(colInp, y + 8, new string(' ', 30));
+            Texto(colInp, y + 8, new string(' ', Math.Min(maxInput, 10)));
         }
-        Texto(colInp, y + 9, new string(' ', 30));
+        Texto(colInp, y + 9, new string(' ', maxInput));
 
         int roi   = Ler0a100NaPos(colInp, y + 9);
         int risco = Ler0a100NaPos(colInp, y + 10);
@@ -174,13 +174,13 @@ public class ProjetoCRUD
         {
             Texto(colRot, linSalvar + 1, "Cadastro cancelado.");
         }
-
-        Console.ReadKey();
+        
+        lin += 3;
+        Texto(colRot, lin, "Pressione ESC para voltar...");
+        Console.ReadKey(true);
     }
 
-    // ============================================================
-    // 2) EXIBIR PROJETOS (tabela alinhada)
-    // ============================================================
+    // =================== LISTAR ===================
     private void ListarProjetos()
     {
         tela.PrepararTela("Project Portfolio Management - Exibir Projetos");
@@ -197,24 +197,40 @@ public class ProjetoCRUD
         int lin = 3;
 
         string formatHeader =
-            $"{"ID",-W_ID}{"NOME",-W_NOME}{"STATUS",-W_STATUS}{"APROVAÇÃO",-W_APROV}{"SCORE",-W_SCORE}{"PROGRESSO",-W_PROG}{"PRAZO",-W_PRAZO}";
+            $"{"ID",-W_ID}" +
+            $"{"NOME",-W_NOME}" +
+            $"{"STATUS",-W_STATUS}" +
+            $"{"APROVAÇÃO",-W_APROV}" +
+            $"{"SCORE",-W_SCORE}" +
+            $"{"PROGRESSO",-W_PROG}" +
+            $"{"PRAZO",-W_PRAZO}";
+
         Texto(col, lin++, formatHeader);
 
         const int SEPARATOR_WIDTH = 83;
-        Texto(col, lin++, new string('═', SEPARATOR_WIDTH));
+        string separator = new string('═', SEPARATOR_WIDTH);
+        Texto(col, lin++, separator);
 
         foreach (var p in projetos)
         {
             string nomeFormatado = Trunc(p.nome, W_NOME);
-            string prazoStr      = Trunc(p.prazoInicial?.ToString("dd/MM/yyyy") ?? "", W_PRAZO);
-            string progressoStr  = $"{p.progresso}%";
+            string prazoStr = Trunc(p.prazoInicial?.ToString("dd/MM/yyyy") ?? "", W_PRAZO);
+            string progressoStr = $"{p.progresso}%";
 
             string line =
-                $"{p.id,-W_ID}{nomeFormatado,-W_NOME}{p.status,-W_STATUS}{p.aprovacao,-W_APROV}{p.score,-W_SCORE}{progressoStr,-W_PROG}{prazoStr,-W_PRAZO}";
+                $"{p.id,-W_ID}" +
+                $"{nomeFormatado,-W_NOME}" +
+                $"{p.status,-W_STATUS}" +
+                $"{p.aprovacao,-W_APROV}" +
+                $"{p.score,-W_SCORE}" +
+                $"{progressoStr,-W_PROG}" +
+                $"{prazoStr,-W_PRAZO}";
+
             Texto(col, lin++, line);
         }
 
         lin++;
+
         if (projetos.Count > 0)
         {
             Console.SetCursorPosition(col, lin);
@@ -225,21 +241,20 @@ public class ProjetoCRUD
             if (proj == null)
             {
                 tela.MostrarMensagem("ID não encontrado. Pressione uma tecla para continuar...");
-                Console.ReadKey();
+                Console.ReadKey(true);
                 return;
             }
+
             VisualizarAtualizar(proj);
         }
         else
         {
             tela.MostrarMensagem("Nenhum projeto cadastrado. Pressione uma tecla para voltar...");
-            Console.ReadKey();
+            Console.ReadKey(true);
         }
     }
 
-    // ============================================================
-    // 3) VISUALIZAR / ATUALIZAR
-    // ============================================================
+    // =================== VISUALIZAR / ATUALIZAR ===================
     private void VisualizarAtualizar(Projeto p)
     {
         while (true)
@@ -292,18 +307,17 @@ public class ProjetoCRUD
             p.progresso = Limita(LInt("Progresso (%)", 0, 100), 0, 100);
 
             tela.MostrarMensagem("Alterações salvas.");
-            Console.ReadKey();
+            Console.ReadKey(true);
         }
     }
 
-    // ============================================================
-    // 4) DASHBOARD
-    // ============================================================
+    // =================== DASHBOARD ===================
     private void DashboardProjetos()
     {
         tela.PrepararTela("Project Portfolio Management - Dashboard de Projetos");
 
-        int lin = 3, col = 4;
+        int lin = 3;
+        int col = 4;
 
         Texto(col, lin++, "Projetos em Análise: " + projetos.Count(p => p.status == "Em Análise"));
         Texto(col, lin++, "Projetos Aprovados e em Execução: " + projetos.Count(p => p.status == "Em Execução"));
@@ -337,9 +351,7 @@ public class ProjetoCRUD
         Console.ReadKey(true);
     }
 
-    // ============================================================
-    // 5) FECHAMENTO FORMAL (layout 83x28, entradas inline)
-    // ============================================================
+    // =================== FECHAMENTO FORMAL ===================
     private void FechamentoFormal()
     {
         Console.Clear();
@@ -355,7 +367,6 @@ public class ProjetoCRUD
         int colRot = x + 2;
         int lin = y + 2;
 
-        // ID na mesma linha
         string label = "ID do Projeto para Fechamento:";
         Texto(colRot, lin, label);
         Console.SetCursorPosition(colRot + label.Length + 1, lin);
@@ -364,7 +375,7 @@ public class ProjetoCRUD
         if (!int.TryParse(idStr, out int id))
         {
             Texto(colRot, lin + 1, "ID inválido.");
-            Console.ReadKey();
+            Console.ReadKey(true);
             return;
         }
 
@@ -372,21 +383,18 @@ public class ProjetoCRUD
         if (p == null)
         {
             Texto(colRot, lin + 1, "Projeto não encontrado.");
-            Console.ReadKey();
+            Console.ReadKey(true);
             return;
         }
 
         lin += 2;
 
-        // Dados atuais
-        Texto(colRot, lin++, $"Nome: {p.nome}");
         Texto(colRot, lin++, $"Status Atual: {p.status}");
         Texto(colRot, lin++, $"Prazo Inicial: {(p.prazoInicial.HasValue ? p.prazoInicial.Value.ToString("dd/MM/yyyy") : "")}");
         Texto(colRot, lin++, $"Orçamento Aprovado: R$ {p.orcamentoAprovado:N2}");
         lin++;
 
-        // Custo Real
-        {
+        {   // custo real
             string lbl = "Custo Real ($):";
             Texto(colRot, lin, lbl);
             int xIn = colRot + lbl.Length + 1;
@@ -396,9 +404,7 @@ public class ProjetoCRUD
             {
                 Console.SetCursorPosition(xIn, lin);
                 string s = Console.ReadLine() ?? "";
-
-                if (decimal.TryParse(s, out custoReal))
-                    break;
+                if (decimal.TryParse(s, out custoReal)) break;
 
                 Console.ForegroundColor = ConsoleColor.Red;
                 Texto(xIn, lin + 1, "Valor inválido.");
@@ -410,8 +416,7 @@ public class ProjetoCRUD
             p.custoReal = custoReal;
         }
 
-        // Novo Prazo
-        {
+        {   // novo prazo
             string lbl = "Novo Prazo (dd/mm/aaaa):";
             Texto(colRot, lin, lbl);
             int xIn = colRot + lbl.Length + 1;
@@ -421,9 +426,7 @@ public class ProjetoCRUD
             {
                 Console.SetCursorPosition(xIn, lin);
                 string s = Console.ReadLine() ?? "";
-
-                if (string.IsNullOrWhiteSpace(s))
-                    break;
+                if (string.IsNullOrWhiteSpace(s)) break;
 
                 if (DateTime.TryParse(s, out DateTime np))
                 {
@@ -441,8 +444,7 @@ public class ProjetoCRUD
             p.novoPrazo = novoPrazo;
         }
 
-        // Progresso
-        {
+        {   // progresso
             string lbl = "Progresso (%):";
             Texto(colRot, lin, lbl);
             int xIn = colRot + lbl.Length + 1;
@@ -452,7 +454,6 @@ public class ProjetoCRUD
             p.progresso = progresso;
         }
 
-        // Confirmar
         string lblFin = "Finalizar Projeto? (S/N):";
         Texto(colRot, lin, lblFin);
         Console.SetCursorPosition(colRot + lblFin.Length + 1, lin);
@@ -469,71 +470,79 @@ public class ProjetoCRUD
             Texto(colRot, linMsg, "Fechamento não confirmado. Pressione ESC para voltar ao MENU...");
         }
 
-        Console.ReadKey();
+        Console.ReadKey(true);
     }
 
-    // ============================================================
-    // 6) BALANÇO CONSOLIDADO (layout 83x28, igual mock)
-    // ============================================================
+    // =================== BALANÇO CONSOLIDADO ===================
     public void BalancoConsolidadoPortfolio()
     {
         Console.Clear();
 
-        int x = 2, y = 1, w = 83, h = 28;
+        int x = 10, y = 3, w = 60, h = 14;
         DesenhaQuadro(x, y, w, h, "Balanço Consolidado do Portfólio");
 
         int col = x + 3;
         int lin = y + 3;
 
-        // Cabeçalho
-        Texto(col + 22, lin++, "Project Portfolio Management");
+        int total       = projetos.Count;
+        int emAnalise   = projetos.Count(p => p.status == "Em Análise");
+        int emExecucao  = projetos.Count(p => p.status == "Em Execução");
+        int encerrados  = projetos.Count(p => p.status == "Encerrado");
+
+        Texto(col, lin++, $"Total de Projetos: {total}");
+        Texto(col, lin++, $"Projetos em Análise: {emAnalise}");
+        Texto(col, lin++, $"Projetos em Execução: {emExecucao}");
+        Texto(col, lin++, $"Projetos Encerrados: {encerrados}");
+
         lin++;
-        Texto(col, lin++, "Balanço Consolidado do Portfólio");
+        decimal custoTotalAprov = projetos.Sum(p => p.orcamentoAprovado);
+        decimal custoRealTotal  = projetos.Sum(p => p.custoReal);
+        double  desvioMedio     = projetos.Average(p => p.DesvioCustoPercentual());
+        double  roiMedio        = projetos.Count > 0 ? projetos.Average(p => (double)p.roi) : 0;
+        double  riscoMedio      = projetos.Count > 0 ? projetos.Average(p => (double)p.risco) : 0;
+        double  alinhMedio      = projetos.Count > 0 ? projetos.Average(p => (double)p.alinhamento) : 0;
+
+        Texto(col, lin++, $"Custo Total Aprovado: {custoTotalAprov:N2}");
+        Texto(col, lin++, $"Custo Real Atual: {custoRealTotal:N2}");
+        Texto(col, lin++, $"Desvio Médio: {desvioMedio:0.0}%");
+        Texto(col, lin++, $"ROI Médio: {roiMedio:0}");
+        Texto(col, lin++, $"Nível Médio de Risco: {riscoMedio:0}");
+        Texto(col, lin++, $"Alinhamento Médio: {alinhMedio:0}");
+
         lin++;
-
-        int total      = projetos.Count;
-        int analise    = projetos.Count(p => p.status == "Em Análise");
-        int exec       = projetos.Count(p => p.status == "Em Execução");
-        int encerrados = projetos.Count(p => p.status == "Encerrado");
-
-        Texto(col, lin++, $"Total de Projetos:           {total,5}");
-        Texto(col, lin++, $"Projetos em Análise:         {analise,5}");
-        Texto(col, lin++, $"Projetos em Execução:        {exec,5}");
-        Texto(col, lin++, $"Projetos Encerrados:         {encerrados,5}");
-        lin++;
-
-        Texto(col, lin++, "Indicadores Consolidados:");
-        lin++;
-
-        if (projetos.Count == 0)
-        {
-            Texto(col, lin, "Nenhum projeto cadastrado.");
-            Console.ReadKey();
-            return;
-        }
-
-        decimal custoAprovado = projetos.Sum(p => p.orcamentoAprovado);
-        decimal custoReal     = projetos.Sum(p => p.custoReal);
-        decimal desvioMedio   = projetos.Average(p => p.orcamentoAprovado > 0 ? ((p.custoReal - p.orcamentoAprovado) / p.orcamentoAprovado) * 100 : 0);
-        double  roiMedio      = projetos.Average(p => p.roi);
-        double  riscoMedio    = projetos.Average(p => p.risco);
-        double  alinhMedio    = projetos.Average(p => p.alinhamento);
-
-        Texto(col, lin++, $"Custo Total Aprovado:    R$ {custoAprovado,15:N2}");
-        Texto(col, lin++, $"Custo Real Atual:        R$ {custoReal,15:N2}");
-        Texto(col, lin++, $"Desvio Médio:            {desvioMedio,8:N1}%");
-        Texto(col, lin++, $"ROI Médio:               {roiMedio,8:N1}%");
-        Texto(col, lin++, $"Nível Médio de Risco:    {riscoMedio,8:N1}%");
-        Texto(col, lin++, $"Alinhamento Médio:       {alinhMedio,8:N1}%");
-
-        lin += 3;
-        Texto(col, lin, "Pressione ESC pra voltar: ");
+        Texto(col, lin, "Pressione  ESC para voltar...");
         Console.ReadKey(true);
     }
 
-    // ============================================================
-    // Helpers / Utilidades
-    // ============================================================
+    // =================== Helpers ===================
+    private int LerValorDeZeroACem(string label)
+    {
+        int valor;
+        bool valido = false;
+        do
+        {
+            Console.Write($"Informe {label} (0 a 100): ");
+            string entrada = Console.ReadLine();
+            if (int.TryParse(entrada, out valor))
+            {
+                if (valor >= 0 && valor <= 100) valido = true;
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Valor inválido! Digite um número entre 0 e 100.\n");
+                    Console.ResetColor();
+                }
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Entrada inválida! Digite apenas números.\n");
+                Console.ResetColor();
+            }
+        } while (!valido);
+        return valor;
+    }
+
     private string Trunc(string s, int max) => string.IsNullOrEmpty(s) ? "" : (s.Length <= max ? s : s.Substring(0, max));
 
     private void Moldura(string titulo)
@@ -552,12 +561,7 @@ public class ProjetoCRUD
     }
 
     private void MsgLinha(string msg) => Console.WriteLine(msg);
-
-    private string Perg(string rotulo)
-    {
-        Console.Write(rotulo + ": ");
-        return Console.ReadLine() ?? "";
-    }
+    private string Perg(string rotulo) { Console.Write(rotulo + ": "); return Console.ReadLine() ?? ""; }
 
     private int LInt(string rotulo, int min = int.MinValue, int max = int.MaxValue)
     {
@@ -593,71 +597,80 @@ public class ProjetoCRUD
     }
 
     private int Limita(int v, int min, int max) => Math.Min(Math.Max(v, min), max);
-
-    private string Confirma(string rotulo)
-    {
-        Console.Write(rotulo + " ");
-        var s = Console.ReadLine() ?? "N";
-        return string.IsNullOrEmpty(s) ? "N" : s.Trim();
-    }
-
-    private int LerValorDeZeroACem(string label)
-    {
-        int valor;
-        bool valido = false;
-        do
-        {
-            Console.Write($"Informe {label} (0 a 100): ");
-            string entrada = Console.ReadLine();
-
-            if (int.TryParse(entrada, out valor))
-            {
-                if (valor >= 0 && valor <= 100) valido = true;
-                else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine("Valor inválido! Digite um número entre 0 e 100.\n"); Console.ResetColor(); }
-            }
-            else { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine("Entrada inválida! Digite apenas números.\n"); Console.ResetColor(); }
-        } while (!valido);
-        return valor;
-    }
+    private string Confirma(string rotulo) { Console.Write(rotulo + " "); var s = Console.ReadLine() ?? "N"; return string.IsNullOrEmpty(s) ? "N" : s.Trim(); }
 
     private bool ExisteId(int id) => projetos.Exists(p => p.id == id);
     private bool ExisteNome(string nome) => projetos.Exists(p => p.nome.Equals(nome, StringComparison.OrdinalIgnoreCase));
 
-    // Desenho + IO em posição
-    private void DesenhaQuadro(int x, int y, int w, int h, string titulo)
+    void DesenhaQuadro(int x, int y, int w, int h, string titulo)
     {
         string horiz = new string('═', w - 2);
 
-        Console.SetCursorPosition(x, y); Console.Write('╔');
-        Console.Write(horiz); Console.Write('╗');
+        Console.SetCursorPosition(x, y);         Console.Write('╔');
+        Console.Write(horiz);                    Console.Write('╗');
 
         for (int i = 1; i < h - 1; i++)
         {
-            Console.SetCursorPosition(x, y + i); Console.Write('║');
-            Console.SetCursorPosition(x + w - 1, y + i); Console.Write('║');
+            Console.SetCursorPosition(x,     y + i); Console.Write('║');
+            Console.SetCursorPosition(x+w-1, y + i); Console.Write('║');
         }
 
         Console.SetCursorPosition(x, y + h - 1); Console.Write('╚');
-        Console.Write(horiz); Console.Write('╝');
+        Console.Write(horiz);                    Console.Write('╝');
 
-        int cx = x + (w - 2 - titulo.Length) / 2 + 1;
+        int cx = x + (w - 2 - titulo.Length)/2 + 1;
         Console.SetCursorPosition(cx, y + 1);
         Console.Write(titulo);
     }
 
-    private void Texto(int col, int lin, string s)
+    void Texto(int col, int lin, string s)
     {
         Console.SetCursorPosition(col, lin);
         Console.Write(s);
     }
 
-    private string LerNaPos(int col, int lin)
+    string LerNaPos(int col, int lin)
     {
         Console.SetCursorPosition(col, lin);
         return Console.ReadLine() ?? "";
     }
 
-    private int Ler0a100NaPos(int col, int lin, int larguraMsg = 50)
+    // NOVO: leitura com limite para não atravessar a moldura
+    string LerNaPosLimitada(int col, int lin, int maxLen)
+    {
+        var sb = new System.Text.StringBuilder(maxLen);
+        Console.SetCursorPosition(col, lin);
+
+        while (true)
+        {
+            var k = Console.ReadKey(intercept: true);
+
+            if (k.Key == ConsoleKey.Enter)
+            {
+                break;
+            }
+            else if (k.Key == ConsoleKey.Backspace)
+            {
+                if (sb.Length > 0)
+                {
+                    sb.Length--;
+                    int x = Console.CursorLeft;
+                    Console.SetCursorPosition(x - 1, lin);
+                    Console.Write(' ');
+                    Console.SetCursorPosition(x - 1, lin);
+                }
+            }
+            else if (!char.IsControl(k.KeyChar) && sb.Length < maxLen)
+            {
+                sb.Append(k.KeyChar);
+                Console.Write(k.KeyChar);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    int Ler0a100NaPos(int col, int lin, int larguraMsg = 50)
     {
         while (true)
         {
