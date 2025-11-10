@@ -284,7 +284,7 @@ public class RecursoCRUD
 
     private void Balanco()
     {
-        tela.PrepararTela("Project Portfolio Management - Balanço de Utilização de Recursos");
+        tela.PrepararTela("Project Portfolio Management");
         
         // --- Constantes de Alinhamento ---
         const int W_NOME = 17;        

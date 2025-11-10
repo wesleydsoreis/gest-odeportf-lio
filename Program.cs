@@ -4,9 +4,9 @@ using System.Reflection;
 
 Tela tela = new Tela();
 ProjetoCRUD projetoCRUD = new ProjetoCRUD(tela);
-RecursoCRUD recursoCRUD  = new RecursoCRUD(tela);
+RecursoCRUD recursoCRUD = new RecursoCRUD(tela);
 
-MostrarLogin(); 
+MostrarLogin();
 
 List<string> opcoes = new List<string>
 {
@@ -24,17 +24,15 @@ List<string> opcoes = new List<string>
 
 while (true)
 {
-  
     tela.PrepararTela("Project Portfolio Management");
 
-    string opcao = tela.MostrarMenu(opcoes, 2, 3); 
+    string opcao = tela.MostrarMenu(opcoes, 2, 3);
 
     if (opcao == "ESC")
-    {
         continue;
-    }
 
-    if (opcao == "0") break;
+    if (opcao == "0")
+        break;
 
     else if (opcao == "1")
         projetoCRUD.GetType().GetMethod("CadastrarProjeto", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(projetoCRUD, null);
@@ -58,7 +56,7 @@ while (true)
         recursoCRUD.GetType().GetMethod("Balanco", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(recursoCRUD, null);
 
     else if (opcao == "8")
-        BalancoConsolidadoPlaceholder();
+        projetoCRUD.GetType().GetMethod("BalancoConsolidadoPortfolio")!.Invoke(projetoCRUD, null); // ✅ agora chama o método real
 
     else
     {
@@ -67,6 +65,11 @@ while (true)
     }
 }
 
+//
+// ────────────────────────────────────────────────────────────────
+//     TELA DE LOGIN
+// ────────────────────────────────────────────────────────────────
+//
 static void MostrarLogin()
 {
     const string USER = "admin";
@@ -99,24 +102,23 @@ static void MostrarLogin()
 
         Console.WriteLine("╚" + barra + "╝");
 
-
         Console.SetCursorPosition(1 + l1.Length, 5);
         string usuario = Console.ReadLine() ?? "";
 
-        Console.SetCursorPosition(1 + l2.Length, 6); 
+        Console.SetCursorPosition(1 + l2.Length, 6);
         string senha = Console.ReadLine() ?? "";
 
-        Console.SetCursorPosition(1 + l3.Length, 7); 
+        Console.SetCursorPosition(1 + l3.Length, 7);
         string conf = Console.ReadLine() ?? "N";
 
         bool ok =
             string.Equals(usuario.Trim(), USER, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(senha.Trim(),   PASS, StringComparison.Ordinal) &&
+            string.Equals(senha.Trim(), PASS, StringComparison.Ordinal) &&
             string.Equals(conf.Trim().ToUpper(), "S", StringComparison.Ordinal);
 
         if (ok) return;
 
-
+        // caso erro, reapresenta login
         while (true)
         {
             Console.Clear();
@@ -124,11 +126,10 @@ static void MostrarLogin()
             Console.WriteLine("║" + Centraliza("Project Portfolio Management", largura) + "║");
             Console.WriteLine("║" + new string(' ', largura) + "║");
 
-            string e1 = " Usuário ou senha incorretos. Informe Novamente:";
+            string e1 = " Usuário ou senha incorretos. Informe novamente:";
             Console.WriteLine("║" + e1 + new string(' ', Math.Max(0, largura - e1.Length)) + "║");
 
             Console.WriteLine("║" + new string(' ', largura) + "║");
-
             Console.WriteLine("║" + l1 + new string(' ', Math.Max(0, largura - l1.Length)) + "║");
             Console.WriteLine("║" + l2 + new string(' ', Math.Max(0, largura - l2.Length)) + "║");
             Console.WriteLine("║" + l3 + new string(' ', Math.Max(0, largura - l3.Length)) + "║");
@@ -153,36 +154,14 @@ static void MostrarLogin()
     }
 }
 
-static void BalancoConsolidadoPlaceholder()
-{
-
-    Console.Clear();
-    int largura = 66;
-    string barra = new string('═', largura);
-
-    Console.WriteLine("╔" + barra + "╗");
-    Console.WriteLine("║" + Centraliza("Balanço Consolidado do Portfólio", largura) + "║");
-    Console.WriteLine("║" + new string(' ', largura) + "║");
-
-    EscreveLinhaBox(largura, " Total de Projetos: ");
-    EscreveLinhaBox(largura, " Projetos em Análise: ");
-    EscreveLinhaBox(largura, " Projetos em Execução: ");
-    EscreveLinhaBox(largura, " Projetos Encerrados: ");
-
-    Console.WriteLine("║" + new string(' ', largura) + "║");
-    EscreveLinhaBox(largura, " Pressione  ESC para voltar...");
-    Console.WriteLine("╚" + barra + "╝");
-    Console.ReadKey(true);
-}
-
+//
+// ────────────────────────────────────────────────────────────────
+//     FUNÇÕES AUXILIARES DE INTERFACE
+// ────────────────────────────────────────────────────────────────
+//
 static string Centraliza(string texto, int largura)
 {
     if (texto.Length > largura) texto = texto.Substring(0, largura);
     int pad = (largura - texto.Length) / 2;
     return new string(' ', pad) + texto + new string(' ', largura - pad - texto.Length);
-}
-
-static void EscreveLinhaBox(int largura, string texto)
-{
-    Console.WriteLine("║" + texto + new string(' ', Math.Max(0, largura - texto.Length)) + "║");
 }
