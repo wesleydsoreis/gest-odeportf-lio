@@ -135,18 +135,58 @@ public class RecursoCRUD
 
     private void Balanco()
     {
-        Console.Clear();
-        Moldura("Balanço de Utilização de Recursos");
-        Console.WriteLine("Nome do Recurso           Função                    Alocação");
-        Console.WriteLine("-------------------------------------------------------------");
+        tela.PrepararTela("Project Portfolio Management - Balanço de Utilização de Recursos");
+        
+        // --- Constantes de Alinhamento (Solicitadas) ---
+        const int W_NOME = 17;        
+        const int W_AREA = 17;        
+        const int W_FUNCAO = 17;      
+        const int W_ALOCACAO = 9;         
+
+        int col = 2; 
+        int lin = 3; 
+
+        // 1. Cabeçalho formatado
+        string formatHeader = 
+            $"{"NOME",-W_NOME}" +
+            $"{"ÁREA",-W_AREA}" +
+            $"{"FUNÇÃO",-W_FUNCAO}" +
+            $"{"ALOCAÇÃO",-W_ALOCACAO}";
+        
+        // Exibir o cabeçalho
+        Texto(col, lin++, formatHeader);
+        
+        // 2. Linha separadora
+        // CORREÇÃO: Define a largura para 83, que é o espaço entre a coluna 2 e a coluna 84 (1 espaço da margem direita).
+        const int SEPARATOR_WIDTH = 83; 
+        string separator = new string('═', SEPARATOR_WIDTH);
+        Texto(col, lin++, separator);
+        
+        // 3. Exibir os recursos
         foreach (var r in recursos)
         {
-            Console.WriteLine($"{Trunc(r.nome,25),-25} {Trunc(r.funcao,22),-22} {r.alocacaoPercent,3}%");
+            // Truncagem e Formatação
+            string nomeFormatado = Trunc(r.nome, W_NOME);
+            string areaFormatada = Trunc(r.areaDepartamento, W_AREA);
+            string funcaoFormatada = Trunc(r.funcao, W_FUNCAO);
+            string alocacaoStr = $"{r.alocacaoPercent}%";
+
+            string line = 
+                $"{nomeFormatado,-W_NOME}" +
+                $"{areaFormatada,-W_AREA}" +
+                $"{funcaoFormatada,-W_FUNCAO}" +
+                $"{alocacaoStr,-W_ALOCACAO}";
+            
+            Texto(col, lin++, line);
         }
-        Console.WriteLine();
-        Console.WriteLine($"Total de Recursos: {recursos.Count}");
-        Console.WriteLine();
-        Console.Write("Voltar (V): "); Console.ReadLine();
+
+        // 4. Totais e Rodapé
+        lin++; 
+        Texto(col, lin++, $"Total de Recursos: {recursos.Count}");
+        
+        // Padrão de rodapé e espera de tecla (como em ListarProjetos)
+        tela.MostrarRodapePadrao();
+        Console.ReadKey(true); 
     }
 
     // --- Métodos Auxiliares ---
@@ -200,7 +240,7 @@ public class RecursoCRUD
     {
         Console.SetCursorPosition(col, lin);
         // Limpa a linha antes de ler (por exemplo, 40 espaços para cobrir o campo)
-        Console.Write(new string(' ', 40));
+        Console.Write(new string(' ', 40)); 
         Console.SetCursorPosition(col, lin);
         return Console.ReadLine() ?? "";
     }

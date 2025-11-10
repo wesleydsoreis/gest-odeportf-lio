@@ -245,8 +245,9 @@ public class ProjetoCRUD
         Texto(col, lin++, formatHeader);
         
         // 2. Linha separadora
-        int contentWidth = W_ID + W_NOME + W_STATUS + W_APROV + W_SCORE + W_PROG + W_PRAZO;
-        string separator = new string('═', contentWidth);
+        // CORREÇÃO: Define a largura para 83, que é o espaço entre a coluna 2 e a coluna 84 (1 espaço da margem direita).
+        const int SEPARATOR_WIDTH = 83;
+        string separator = new string('═', SEPARATOR_WIDTH);
         Texto(col, lin++, separator);
         
         // 3. Exibir os projetos
