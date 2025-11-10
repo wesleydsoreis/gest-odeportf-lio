@@ -1,12 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Linq; 
 
 public class RecursoCRUD
 {
     private readonly Tela tela;
     private readonly List<Recurso> recursos = new List<Recurso>();
+    
+    // ====================================================================
+    // SIMULAÇÃO: Lista de Projetos para lookup do Gerente (DEVE ESTAR DENTRO DA CLASSE)
+    private readonly List<Projeto> mockProjetos = new List<Projeto>
+    {
+        new Projeto { id = 1001, nome = "Expansao Digital", gerente = "Alice", orcamentoAprovado = 150000m, status = "Em Execução" },
+        new Projeto { id = 1002, nome = "Migracao Cloud", gerente = "Carlos", orcamentoAprovado = 50000m, status = "Em Análise" },
+        new Projeto { id = 1003, nome = "Sistema CRM", gerente = "Eduardo", orcamentoAprovado = 80000m, status = "Em Execução" }
+    };
+    // ====================================================================
 
-    public RecursoCRUD(Tela tela)
+    public RecursoCRUD(Tela tela) 
     {
         this.tela = tela;
     }
@@ -56,19 +67,19 @@ public class RecursoCRUD
         // 1. Nome:
         string labelNome = "Nome: ";
         Texto(colRot, lin, labelNome);
-        r.nome = LerNaPos(colRot + labelNome.Length, lin++); // Input logo após o rótulo
+        r.nome = LerNaPos(colRot + labelNome.Length, lin++);
 
         // 2. Área/Departamento:
         string labelArea = "Área/Departamento: ";
         Texto(colRot, lin, labelArea);
-        r.areaDepartamento = LerNaPos(colRot + labelArea.Length, lin++); // Input logo após o rótulo
+        r.areaDepartamento = LerNaPos(colRot + labelArea.Length, lin++);
 
         // 3. Cargo/Função:
         string labelFuncao = "Cargo/Função: ";
         Texto(colRot, lin, labelFuncao);
-        r.funcao = LerNaPos(colRot + labelFuncao.Length, lin++); // Input logo após o rótulo
+        r.funcao = LerNaPos(colRot + labelFuncao.Length, lin++);
         
-        r.alocacaoPercent = 0; // Inicializa a alocação
+        r.alocacaoPercent = 0;
 
         // --- Salvar ---
         lin++;
@@ -76,7 +87,6 @@ public class RecursoCRUD
         string labelSalvar = "Salvar cadastro?(S/N): ";
         Texto(colRot, linSalvar, labelSalvar);
 
-        // Posiciona o cursor logo após o rótulo de salvar
         Console.SetCursorPosition(colRot + labelSalvar.Length, linSalvar);
         
         string salvar = Console.ReadLine() ?? "N";
@@ -93,51 +103,190 @@ public class RecursoCRUD
         Console.ReadKey();
     }
 
+
     private void Alocar()
     {
         if (recursos.Count == 0)
         {
-            Console.WriteLine("Nenhum recurso cadastrado.");
+            tela.MostrarMensagem("Nenhum recurso cadastrado.");
             Console.ReadKey();
             return;
         }
-        Console.Clear();
-        Moldura("Alocar Recurso (simples)");
-        Console.WriteLine("Nome                         Função                 Alocação");
-        Console.WriteLine("-------------------------------------------------------------");
+        
+        tela.PrepararTela("Project Portfolio Management - Alocar Recurso");
+
+        // --- Constantes de Alinhamento (Larguras Totais) ---
+        const int W_NUM = 4;
+        const int W_NOME = 17; 
+        const int W_AREA = 17; 
+        const int W_FUNCAO = 17; 
+        const int W_ALOCACAO = 9;
+        
+        int col = 2; 
+        int lin = 3; 
+        
+        // 1. Cabeçalho formatado
+        string formatHeader = 
+            $"{"Nº",-W_NUM}" +
+            $"{"NOME",-W_NOME}" +
+            $"{"ÁREA",-W_AREA}" + 
+            $"{"FUNÇÃO",-W_FUNCAO}" + 
+            $"{"ALOCAÇÃO",-W_ALOCACAO}";
+        
+        Texto(col, lin++, formatHeader);
+        
+        // 2. Linha separadora
+        const int SEPARATOR_WIDTH = 83;
+        string separator = new string('═', SEPARATOR_WIDTH);
+        Texto(col, lin++, separator);
+        
+        // 3. Listar Recursos
         for (int i = 0; i < recursos.Count; i++)
         {
             var r = recursos[i];
-            Console.WriteLine($"{i+1,-3} {Trunc(r.nome,25),-25} {Trunc(r.funcao,20),-20} {r.alocacaoPercent,3}%");
-        }
-        Console.WriteLine();
-        Console.Write("Escolha o nº do recurso: ");
-        if (!int.TryParse(Console.ReadLine(), out int idx) || idx < 1 || idx > recursos.Count) return;
+            string nomeFormatado = Trunc(r.nome, W_NOME);
+            string areaFormatada = Trunc(r.areaDepartamento, W_AREA);
+            string funcaoFormatada = Trunc(r.funcao, W_FUNCAO);
+            string alocacaoStr = $"{r.alocacaoPercent}%";
 
+            string line = 
+                $"{i + 1,-W_NUM}" +
+                $"{nomeFormatado,-W_NOME}" +
+                $"{areaFormatada,-W_AREA}" +
+                $"{funcaoFormatada,-W_FUNCAO}" +
+                $"{alocacaoStr,-W_ALOCACAO}";
+            
+            Texto(col, lin++, line);
+        }
+
+        lin++; // Espaçamento
+        
+        // 4. Input e Lógica (Alinhamento Corrigido: colRot = col = 2)
+        
+        int colRot = col; // Coluna inicial para as labels, alinhada com 'Nº'
+        bool salvamentoPendente = false;
+        
+        // Escolha o nº do recurso:
+        string labelEscolha = "Escolha o nº do recurso: ";
+        Texto(colRot, lin, labelEscolha);
+
+        int idx;
+        Console.SetCursorPosition(colRot + labelEscolha.Length, lin);
+        if (!int.TryParse(Console.ReadLine(), out idx) || idx < 1 || idx > recursos.Count)
+        {
+            tela.MostrarMensagem("Seleção inválida. Pressione uma tecla para voltar...");
+            Console.ReadKey();
+            return;
+        }
         var sel = recursos[idx - 1];
-        Console.Write("Nova alocação (%): ");
-        if (int.TryParse(Console.ReadLine(), out int nova))
+        lin++;
+
+        // Projeto:
+        string labelProjeto = "Projeto: ";
+        Texto(colRot, lin, labelProjeto);
+        string nomeProjeto = LerNaPos(colRot + labelProjeto.Length, lin++);
+        
+        // === Lógica de Preenchimento Automático do Gerente ===
+        Projeto projetoEncontrado = mockProjetos.FirstOrDefault(p => p.nome.Equals(nomeProjeto, StringComparison.OrdinalIgnoreCase));
+        
+        string gerenteProjeto = "[NÃO ENCONTRADO]"; 
+        if (projetoEncontrado != null)
+        {
+            gerenteProjeto = projetoEncontrado.gerente;
+        }
+
+        // Gerente de Projeto: (Exibição)
+        string labelGerente = "Gerente de Projeto: ";
+        Texto(colRot, lin, labelGerente);
+        Texto(colRot + labelGerente.Length, lin, gerenteProjeto); 
+        lin++; 
+        
+        lin++;
+        
+        // Nova alocação (%):
+        string labelNovaAlocacao = "Nova alocação (%): ";
+        Texto(colRot, lin, labelNovaAlocacao);
+
+        int nova = 0;
+        Console.SetCursorPosition(colRot + labelNovaAlocacao.Length, lin);
+        if (int.TryParse(Console.ReadLine(), out nova))
         {
             if (nova < 0) nova = 0;
             if (nova > 100) nova = 100;
+
             if (sel.alocacaoPercent + nova > 100)
             {
-                Console.WriteLine("Capacidade de alocação atingida.");
+                // Cenário de alocação indisponível
+                lin++;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Texto(colRot, lin++, "Capacidade máxima de alocação atingida.");
+                Console.ResetColor();
+                
+                // Pergunta de confirmação de sobrecarga
+                string labelConfirma = "Cadastrar nova alocação (Sobrecarga)?(S/N): ";
+                Texto(colRot, lin, labelConfirma);
+                
+                Console.SetCursorPosition(colRot + labelConfirma.Length, lin);
+                string confirma = Console.ReadLine() ?? "N";
+
+                if (confirma.Equals("S", StringComparison.OrdinalIgnoreCase))
+                {
+                    sel.alocacaoPercent += nova; 
+                    salvamentoPendente = true;
+                    lin++;
+                }
+                else
+                {
+                    lin++;
+                    Texto(colRot, lin++, "Alocação cancelada.");
+                }
+
             }
             else
             {
-                sel.alocacaoPercent = nova;
-                Console.WriteLine("Alocação salva.");
+                // Alocação normal
+                sel.alocacaoPercent += nova;
+                salvamentoPendente = true;
             }
         }
-        Console.ReadKey();
+
+        // --- Lógica de SALVAMENTO FINAL (Padrão das outras telas) ---
+        
+        if (salvamentoPendente)
+        {
+            lin++; // Espaçamento
+            
+            // Label Salvar Alocação? (S/N)
+            string labelSalvar = "Salvar Alocação?(S/N): ";
+            int linSalvar = lin; 
+            Texto(colRot, linSalvar, labelSalvar);
+
+            Console.SetCursorPosition(colRot + labelSalvar.Length, linSalvar);
+            string salvar = Console.ReadLine() ?? "N";
+
+            if (salvar.Equals("S", StringComparison.OrdinalIgnoreCase))
+            {
+                Texto(colRot, linSalvar + 1, "Alocação salva com sucesso.");
+            }
+            else
+            {
+                // Reverte a alteração se o usuário cancelar
+                sel.alocacaoPercent -= nova;
+                Texto(colRot, linSalvar + 1, "Alocação cancelada.");
+            }
+
+            // Espera para visualização da mensagem
+            Console.ReadKey();
+        }
+        
+        // Retorna ao menu principal
     }
 
     private void Balanco()
     {
         tela.PrepararTela("Project Portfolio Management - Balanço de Utilização de Recursos");
         
-        // --- Constantes de Alinhamento (Solicitadas) ---
+        // --- Constantes de Alinhamento ---
         const int W_NOME = 17;        
         const int W_AREA = 17;        
         const int W_FUNCAO = 17;      
@@ -149,7 +298,7 @@ public class RecursoCRUD
         // 1. Cabeçalho formatado
         string formatHeader = 
             $"{"NOME",-W_NOME}" +
-            $"{"ÁREA",-W_AREA}" +
+            $"{"ÁREA",-W_AREA}" + 
             $"{"FUNÇÃO",-W_FUNCAO}" +
             $"{"ALOCAÇÃO",-W_ALOCACAO}";
         
@@ -157,7 +306,6 @@ public class RecursoCRUD
         Texto(col, lin++, formatHeader);
         
         // 2. Linha separadora
-        // CORREÇÃO: Define a largura para 83, que é o espaço entre a coluna 2 e a coluna 84 (1 espaço da margem direita).
         const int SEPARATOR_WIDTH = 83; 
         string separator = new string('═', SEPARATOR_WIDTH);
         Texto(col, lin++, separator);
@@ -184,7 +332,6 @@ public class RecursoCRUD
         lin++; 
         Texto(col, lin++, $"Total de Recursos: {recursos.Count}");
         
-        // Padrão de rodapé e espera de tecla (como em ListarProjetos)
         tela.MostrarRodapePadrao();
         Console.ReadKey(true); 
     }
@@ -208,7 +355,6 @@ public class RecursoCRUD
         return new string(' ', pad) + texto + new string(' ', largura - pad - texto.Length);
     }
     
-    // Métodos copiados de ProjetoCRUD para Desenho e Input
     void DesenhaQuadro(int x, int y, int w, int h, string titulo)
     {
         string horiz = new string('═', w - 2);
